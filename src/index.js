@@ -28,6 +28,13 @@ const client = new Client({
     ],
 });
 
+// Login the client. The client needs a token to login which acts as a sort of identifier/password to allow for development.
+// The token is stored in the file .env, which is specific to the environment. .env was added to .gitignore which prevents
+// it from being put on github. We don't want the token shared because it is a security risk. If it were leaked, someone could
+// use the token to program the bot without permission. Unsure what would happen if there were two programs that used 
+// client.login() with the same token. Would they run simultaneously? I kinda don't see why not. 
+client.login(process.env.TOKEN);
+
 // Event listener when client is ready
 client.on("ready", (c) => {
     console.log(`${c.user.username} is online!`);   // Note the use of ` as quotes. This allows the ${} formatting which lets us directly reference the bot's screen name. 
@@ -50,12 +57,7 @@ client.on("messageCreate", (message) => {
 
 });
 
-// Login the client. The client needs a token to login which acts as a sort of identifier/password to allow for development.
-// The token is stored in the file .env, which is specific to the environment. .env was added to .gitignore which prevents
-// it from being put on github. We don't want the token shared because it is a security risk. If it were leaked, someone could
-// use the token to program the bot without permission. Unsure what would happen if there were two programs that used 
-// client.login() with the same token. Would they run simultaneously? I kinda don't see why not. 
-client.login(process.env.TOKEN);
+
 
 // Tutorial guy said to npm install -g nodemon. When you call nodemon (instead of "node ." or "node src/index.js"),
 // the program updates automatically as changes are made. I personally don't wanna mess with this but I did install it
