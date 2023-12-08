@@ -6,10 +6,13 @@
 // For now I'm following a tutorial series ( https://www.youtube.com/watch?v=KZ3tIGHU314 )
 // And once I think I have a good foundation I will start moving the pieces around to 
 // make it do something more unique.
+// Once I'm done with the tutorial, it might be a good idea to check this resource: 
+// https://discordjs.guide/creating-your-bot/event-handling.html#individual-event-files
+// to separate the event handlers into their own files so it's cleaner and easier to understand. 
 
 // For now all the bot does is log the message metadata for anyone who isn't a bot,
 // and responds with "That's me!" whenever someone types "Meme Bot" in the chat.
-
+// It also responds to a very basic slash command per the tutorial.
 
 // We must require 'dotenv' to be able to access the token. The token must stay private in .env
 require('dotenv').config();
@@ -42,6 +45,23 @@ client.on("ready", (c) => {
                                                     // Go to discord.js.org and look up Message in the documentation for more info
 });
 
+// Event listener when a slash command is sent
+client.on("interactionCreate", (interaction) => {
+    // Only continue if the interaction is a slash command (denoted as a ChatInputCommand here apparently)
+    // Otherwise, return from the block immediately
+    if (!interaction.isChatInputCommand()) { return; }
+
+    // Respond to slash commands depending on their names
+    switch(interaction.commandName) {
+        case "info":
+            interaction.reply("I am a multi-purpose bot, most notably to enhance the character of your server :]");
+            break;
+        default: 
+            console.log("Error, this shouldn't happen.");
+    }
+
+});
+
 // Event listener when a message is created
 client.on("messageCreate", (message) => {
 
@@ -56,8 +76,6 @@ client.on("messageCreate", (message) => {
     }
 
 });
-
-
 
 // Tutorial guy said to npm install -g nodemon. When you call nodemon (instead of "node ." or "node src/index.js"),
 // the program updates automatically as changes are made. I personally don't wanna mess with this but I did install it
