@@ -5,17 +5,44 @@
 // This file registers the slash commands for the bot. Since I'm following a tutorial ( https://www.youtube.com/watch?v=2CsSJshmadg )
 // I'm not sure if I will be using these down the line, but perhaps they will be useful later.
 
+// 12/10/23: They might be useful for customizing the bot itself. Personally I'd like users to call commands with "!" rather than "/"
+// See https://www.youtube.com/watch?v=_lP90FOYfbA for info.
+// In this scenario, slash commands must first check if the caller is an admin before allowing customization.
+
 // We need to draw values from .env again (CLIENT_ID and GUILD_ID), so require it
 require('dotenv').config();
 
-// We need to include REST as well
-const { REST, Routes } = require('discord.js');
+// Include REST, Routes, and option types for app commands
+const { REST, 
+        Routes, 
+        ApplicationCommandOptionType } = require('discord.js');
 
 // Below we create the actual metadata for the commands, notably their names and descriptions
 const commands = [
     {
         name: "info",
         description: "Information about the bot"
+    },
+    {
+        name: "add",
+        description: "Adds two numbers",
+
+        // These are the options (or arguments/parameters for the slash command)
+        // Setting require to true is important, otherwise the user doesn't need to supply every argument when they should.
+        options: [
+            {
+                name: "first-number",
+                description: "The first number",
+                type: ApplicationCommandOptionType.Number,
+                required: true
+            },
+            {
+                name: "second-number",
+                description: "The second number",
+                type: ApplicationCommandOptionType.Number,
+                required: true
+            }
+        ]
     }
 ];
 

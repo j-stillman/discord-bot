@@ -14,13 +14,17 @@
 // and responds with "That's me!" whenever someone types "Meme Bot" in the chat.
 // It also responds to a very basic slash command per the tutorial.
 
+// DISCORD IMPORTS ====================================================================================================
+
 // We must require 'dotenv' to be able to access the token. The token must stay private in .env
 require('dotenv').config();
 
 // Notes: Intents are "permissions" for a bot. They take the form of constants e.g. "GUILD_CREATE", "GUILD_UPDATE".
 // If you look at the line "IntentsBitField.Flags.Guilds", that means all the consts beginning with "GUILD" are allowed. 
 // See the Discord documentation on Intents here: https://discord.com/developers/docs/topics/gateway#list-of-intents
-const { Client, IntentsBitField } = require('discord.js');
+const { Client, 
+        IntentsBitField,
+        ActivityType } = require('discord.js');
 
 const client = new Client({
     intents: [
@@ -38,11 +42,19 @@ const client = new Client({
 // client.login() with the same token. Would they run simultaneously? I kinda don't see why not. 
 client.login(process.env.TOKEN);
 
+
+// CLIENT EVENT LISTENERS =============================================================================================
+
 // Event listener when client is ready
 client.on("ready", (c) => {
     console.log(`${c.user.username} is online!`);   // Note the use of ` as quotes. This allows the ${} formatting which lets us directly reference the bot's screen name. 
                                                     // You can also use c.user.tag to get the username with the 4 digit discord code.
                                                     // Go to discord.js.org and look up Message in the documentation for more info
+    client.user.setActivity({
+        name: "Plauche",
+        type: ActivityType.Custom,
+    });
+
 });
 
 // Event listener when a slash command is sent
@@ -55,6 +67,14 @@ client.on("interactionCreate", (interaction) => {
     switch(interaction.commandName) {
         case "info":
             interaction.reply("I am a multi-purpose bot, most notably to enhance the character of your server :]");
+            break;
+        case "add":
+            // Retrieve the two arguments first-number and second-number from the slash command
+            const n1 = interaction.options.get("first-number").value;
+            const n2 = interaction.options.get("second-number").value;
+
+            // Reply with their sum
+            interaction.reply(`The sum of ${n1} and ${n2} is ${n1 + n2}.`);
             break;
         default: 
             console.log("Error, this shouldn't happen.");
