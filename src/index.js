@@ -43,6 +43,16 @@ const client = new Client({
 client.login(process.env.TOKEN);
 
 
+// BOT-SPECIFIC VARIABLES =============================================================================================
+
+// TODO set it up so that favoriteWord and count are stored in a JSON file
+// Have the bot load favoriteWord and favoriteWordCount from the JSON, and save it 
+// to the JSON when either are updated. (count is updated in the messageCreate event
+// while favoriteWord is changed via the slash command)
+// This way the bot can keep the count running even if it crashes and must be reloaded 
+favoriteWord = "";                                  // Word that the bot will keep count of (temporary?)
+favoriteWordCount = 0;                              // Amount of times that word has been said (temporary)
+
 // CLIENT EVENT LISTENERS =============================================================================================
 
 // Event listener when client is ready
@@ -76,6 +86,44 @@ client.on("interactionCreate", (interaction) => {
             // Reply with their sum
             interaction.reply(`The sum of ${n1} and ${n2} is ${n1 + n2}.`);
             break;
+        case "setwordcounter":
+            // Command to create a counter for a specified word.
+            // format "/setwordcounter word"
+            // It will set the bot's favorite word and 
+            // Any time a user says this word, it will announce it and add it to the counter.
+            // TODO Store favoriteWordCount in a json file so it does not reset between runs
+            // TODO Find a way to make this word/count specific to each server.
+
+            // Restrict the use of this command to admins only.
+            // Code used to check if admin: https://stackoverflow.com/a/70563774
+            if (interaction.member.permissionsIn(interaction.channel).has("ADMINISTRATOR")) {
+
+                // Obtain the value of "word" option in the slash command
+                const word = interaction.options.get("word").value;
+
+                // Set favoriteWord to word an set favoriteWordCount to 0, only if it's a new, non-empty string 
+                if (word == "") {
+                    // The word is empty. Possibly impossible?
+                    interaction.reply(`Word Counter cannot be set to count empty strings.`);
+                }else if (word.toLowerCase() == favoriteWord) {
+                    // This word is already in use
+                    interaction.reply(`Word Counter is already set to count "${word}". Please choose another word.`);
+                }else{
+                    // Word is a new, non-empty string
+                    favoriteWord = word.toLowerCase();
+                    favoriteWordCount = 0;
+
+                    interaction.reply(`Word Counter has been set to count "${favoriteWord}"!`);
+                }
+
+            }else{
+
+                // Caller is not an admin, so tell them the command cannot be used
+                interaction.reply(`You do not have permission to use this command.`);
+            
+            }
+            
+            break;
         default: 
             console.log("Error, this shouldn't happen.");
     }
@@ -91,8 +139,30 @@ client.on("messageCreate", (message) => {
     console.log(message);           // Give this a good look in the console whenever a message is sent.
                                     // There are a lot of attributes to a discord message. You can use it as a sort of reference too I think.
     
-    if (message.content === "Meme Bot") {
-        message.reply("That's me!");
+    // Begin parsing the message to determine the response, if any.
+    let lowerMessage = message.content.toLowerCase();       // The message in lowercase
+    let messageWords = lowerMessage.split(' ');             // Array of words of the message, in lowercase
+    let favoriteWordsDetected = 0;                          // Amount of times favoriteWord was detected
+
+    // Start looking for instances of favoriteWord if it has been set
+    if (favoriteWord != "") {
+
+        // For each word in messageWord, see if favoriteWord comes up and increment favoriteWordsDetected if it does
+        for(i = 0; i < messageWords.length; i++) {
+
+            if (messageWords[i].includes(favoriteWord)) {
+                console.log("word detected");
+                favoriteWordsDetected++;
+            }
+
+        }
+
+        // Once crawling the message is complete, add to the counter and announce it to the server
+        if (favoriteWordsDetected > 0) {
+            favoriteWordCount += favoriteWordsDetected;
+            message.channel.send(`DING!\n${favoriteWord} counter: ${favoriteWordCount}`);
+        }
+
     }
 
 });

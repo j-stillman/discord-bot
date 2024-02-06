@@ -28,7 +28,7 @@ const commands = [
         description: "Adds two numbers",
 
         // These are the options (or arguments/parameters for the slash command)
-        // Setting require to true is important, otherwise the user doesn't need to supply every argument when they should.
+        // Setting require to true is important, otherwise the user wouldn't need to supply every argument when they really should.
         options: [
             {
                 name: "first-number",
@@ -43,7 +43,20 @@ const commands = [
                 required: true
             }
         ]
-    }
+    },
+    {
+        name: "setwordcounter",
+        description: "(Admin use only) Sets a counter that ticks every time a specified word is used",
+
+        options: [
+            {
+                name: "word",
+                description: "The word that will be counted",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
 ];
 
 // Initialize REST to the bot token in env
@@ -61,6 +74,7 @@ const rest = new REST ({version: "10"}).setToken(process.env.TOKEN);
         )
 
         console.log("Slash commands registered successfully!");
+
     }catch (error) {
         console.log(`Register commands: error caught: ${error}`);
     }
