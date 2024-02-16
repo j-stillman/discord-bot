@@ -45,6 +45,10 @@ const commands = [
         ]
     },
     {
+        name: "sethomechannel",
+        description: "(Admin use only) Sets the bot's home channel to the channel in which this command is called."
+    },
+    {
         name: "setwordcounter",
         description: "(Admin use only) Sets a counter that ticks every time a specified word is used",
 

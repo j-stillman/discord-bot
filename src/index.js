@@ -35,12 +35,10 @@ const client = new Client({
     ],
 });
 
-// Login the client. The client needs a token to login which acts as a sort of identifier/password to allow for development.
-// The token is stored in the file .env, which is specific to the environment. .env was added to .gitignore which prevents
-// it from being put on github. We don't want the token shared because it is a security risk. If it were leaked, someone could
-// use the token to program the bot without permission. Unsure what would happen if there were two programs that used 
-// client.login() with the same token. Would they run simultaneously? I kinda don't see why not. 
-client.login(process.env.TOKEN);
+// FILESTREAM IMPORTS =================================================================================================
+
+const fs = require('fs');
+client.data = require("../data/data.json");
 
 
 // BOT-SPECIFIC VARIABLES =============================================================================================
@@ -85,6 +83,28 @@ client.on("interactionCreate", (interaction) => {
 
             // Reply with their sum
             interaction.reply(`The sum of ${n1} and ${n2} is ${n1 + n2}.`);
+            break;
+        case "sethomechannel":
+            // Command to set the "home" channel of the bot to the channel in which this command was called
+
+            // Restrict the use of this command to admins only.
+            // Code used to check if admin: https://stackoverflow.com/a/70563774
+            if (interaction.member.permissionsIn(interaction.channel).has("ADMINISTRATOR")) {
+
+                // TODO Create a variable that defines the home channel and save it in the JSON profile for whichever
+                // server it was called.
+                // The JSON should have different "profiles" for each server, where the home channel, favorite word counts, etc 
+                // are stored. 
+
+                // Reply that the home channel has been set
+                // TODO Optimize this such that it isn't hardcoded
+                interaction.reply(`${client.user.username}'s home channel has been set to ${interaction.channel}!`);
+
+            }else{
+                interaction.reply(`You do not have permission to use this command.`);
+            }
+
+            
             break;
         case "setwordcounter":
             // Command to create a counter for a specified word.
@@ -151,7 +171,6 @@ client.on("messageCreate", (message) => {
         for(i = 0; i < messageWords.length; i++) {
 
             if (messageWords[i].includes(favoriteWord)) {
-                console.log("word detected");
                 favoriteWordsDetected++;
             }
 
@@ -160,12 +179,23 @@ client.on("messageCreate", (message) => {
         // Once crawling the message is complete, add to the counter and announce it to the server
         if (favoriteWordsDetected > 0) {
             favoriteWordCount += favoriteWordsDetected;
-            message.channel.send(`DING!\n${favoriteWord} counter: ${favoriteWordCount}`);
+
+            // Set the first letter uppercase for message. Code found at: https://stackoverflow.com/a/1026087
+            let upperCaseWord = favoriteWord.charAt(0).toUpperCase() + favoriteWord.slice(1);
+            message.channel.send(`**Ding!**\n${upperCaseWord} counter: ${favoriteWordCount}`);
+
         }
 
     }
 
 });
+
+// Finally login the client. The client needs a token to login which acts as a sort of identifier/password to allow for development.
+// The token is stored in the file .env, which is specific to the environment. .env was added to .gitignore which prevents
+// it from being put on github. We don't want the token shared because it is a security risk. If it were leaked, someone could
+// use the token to program the bot without permission. Unsure what would happen if there were two programs that used 
+// client.login() with the same token. Would they run simultaneously? I kinda don't see why not. 
+client.login(process.env.TOKEN);
 
 // Tutorial guy said to npm install -g nodemon. When you call nodemon (instead of "node ." or "node src/index.js"),
 // the program updates automatically as changes are made. I personally don't wanna mess with this but I did install it
