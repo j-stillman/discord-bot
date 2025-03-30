@@ -38,7 +38,7 @@ const client = new Client({
 // FILESTREAM IMPORTS =================================================================================================
 
 const fs = require('fs');
-client.data = require("../data/data.json");
+client.data = require("../data/data.json"); 
 
 
 // BOT-SPECIFIC VARIABLES =============================================================================================
@@ -51,6 +51,19 @@ client.data = require("../data/data.json");
 favoriteWord = "";                                  // Word that the bot will keep count of (temporary?)
 favoriteWordCount = 0;                              // Amount of times that word has been said (temporary)
 
+
+// Finally login the client. The client needs a token to login which acts as a sort of identifier/password to allow for development.
+// The token is stored in the file .env, which is specific to the environment. .env was added to .gitignore which prevents
+// it from being put on github. We don't want the token shared because it is a security risk. If it were leaked, someone could
+// use the token to program the bot without permission. Unsure what would happen if there were two programs that used 
+// client.login() with the same token. Would they run simultaneously? I kinda don't see why not. 
+client.login(process.env.TOKEN);
+
+// Tutorial guy said to npm install -g nodemon. When you call nodemon (instead of "node ." or "node src/index.js"),
+// the program updates automatically as changes are made. I personally don't wanna mess with this but I did install it
+// Maybe it'll come in handy later.
+
+
 // CLIENT EVENT LISTENERS =============================================================================================
 
 // Event listener when client is ready
@@ -62,6 +75,13 @@ client.on("ready", (c) => {
         name: "Plauche",
         type: ActivityType.Custom,
     });
+    
+
+    // Announce to the server (in #bot-spam) that the bot is now online (mostly for debugging)
+    // TODO probably delete this later, especially if other servers intend to use this bot (they won't)
+    var g = client.guilds.cache.get("628638523771322388");
+    var chan = g.channels.cache.get("1182552828292644956");
+    //chan.send(`${client.user.displayName} is online! Hello, everyone!`);
 
 });
 
@@ -74,15 +94,23 @@ client.on("interactionCreate", (interaction) => {
     // Respond to slash commands depending on their names
     switch(interaction.commandName) {
         case "info":
-            interaction.reply("I am a multi-purpose bot, most notably to enhance the character of your server :]");
+            interaction.reply("I am a multi-purpose bot, most notably to enhance the character of your server :]\nPlease note I am still in Zeta, so no functionality is guaranteed.");
             break;
         case "add":
             // Retrieve the two arguments first-number and second-number from the slash command
             const n1 = interaction.options.get("first-number").value;
             const n2 = interaction.options.get("second-number").value;
+            var sum = 0;
+            
+            // Funny joke easter egg 9 + 10 = 21
+            if ((n1 == 9 && n2 == 10) || (n1 == 10 && n2 == 9)) {
+                sum = 21;
+            }else{
+                sum = n1 + n2;
+            }   
 
             // Reply with their sum
-            interaction.reply(`The sum of ${n1} and ${n2} is ${n1 + n2}.`);
+            interaction.reply(`The sum of ${n1} and ${n2} is ${sum}.`);
             break;
         case "sethomechannel":
             // Command to set the "home" channel of the bot to the channel in which this command was called
@@ -153,12 +181,15 @@ client.on("interactionCreate", (interaction) => {
 // Event listener when a message is created
 client.on("messageCreate", (message) => {
 
-    // Below is a control to prevent the bot from manipulating its own messages.
+    // Prevent the bot from manipulating its own messages.
     if (message.author.bot) { return; }
 
     console.log(message);           // Give this a good look in the console whenever a message is sent.
                                     // There are a lot of attributes to a discord message. You can use it as a sort of reference too I think.
     
+    // Obtain the guild ID of the message and relate it back to the server profile in the JSON file
+    let serverProfile = client.data["servers"][message.guild.id];
+
     // Begin parsing the message to determine the response, if any.
     let lowerMessage = message.content.toLowerCase();       // The message in lowercase
     let messageWords = lowerMessage.split(' ');             // Array of words of the message, in lowercase
@@ -190,13 +221,4 @@ client.on("messageCreate", (message) => {
 
 });
 
-// Finally login the client. The client needs a token to login which acts as a sort of identifier/password to allow for development.
-// The token is stored in the file .env, which is specific to the environment. .env was added to .gitignore which prevents
-// it from being put on github. We don't want the token shared because it is a security risk. If it were leaked, someone could
-// use the token to program the bot without permission. Unsure what would happen if there were two programs that used 
-// client.login() with the same token. Would they run simultaneously? I kinda don't see why not. 
-client.login(process.env.TOKEN);
 
-// Tutorial guy said to npm install -g nodemon. When you call nodemon (instead of "node ." or "node src/index.js"),
-// the program updates automatically as changes are made. I personally don't wanna mess with this but I did install it
-// Maybe it'll come in handy later.
