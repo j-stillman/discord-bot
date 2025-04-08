@@ -49,8 +49,8 @@ const commands = [
         description: "(Admin use only) Sets the bot's home channel to the channel in which this command is called."
     },
     {
-        name: "setwordcounter",
-        description: "(Admin use only) Sets a counter that ticks every time a specified word is used",
+        name: "setfavoriteword",
+        description: "(Admin use only) Sets the bot's favorite word and creates a counter for each time the word is used.",
 
         options: [
             {
@@ -68,7 +68,7 @@ const rest = new REST ({version: "10"}).setToken(process.env.TOKEN);
 
 // Actually register the commands to the bot via anonymous function
 (async () => {
-    try{
+    try {
 
         console.log("Registering slash commands...");
 
