@@ -126,7 +126,7 @@ client.on("interactionCreate", (interaction) => {
 
                 // Reply that the home channel has been set
                 // TODO Optimize this such that it isn't hardcoded
-                interaction.reply(`${client.user.username}'s home channel has been set to ${interaction.channel}!`);
+                interaction.reply(`${client.user.username}'s home channel has been set to ${interaction.channel.id}!`);
 
             }else{
                 interaction.reply(`You do not have permission to use this command.`);

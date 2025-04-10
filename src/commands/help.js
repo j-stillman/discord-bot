@@ -15,14 +15,13 @@ module.exports = {
         // TODO set it up so that commands appear in alphabetical order, but then again I think they already do
         let response = "**Here is a list of available commands:**\n";
         for (let command of client.commands) {
-            console.log(command);
             let n = command[1].data.name;
             let d = command[1].data.description;
             response += `\`!${n}\` - ${d}\n`;
         }
 
         if (response != "") {
-            message.channel.send(response);
+            await message.channel.send(response);
         }
     
     }// end execute()

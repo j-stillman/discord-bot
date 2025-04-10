@@ -49,13 +49,26 @@ const commands = [
         description: "(Admin use only) Sets the bot's home channel to the channel in which this command is called."
     },
     {
-        name: "setfavoriteword",
-        description: "(Admin use only) Sets the bot's favorite word and creates a counter for each time the word is used.",
+        name: "addwordcounter",
+        description: "(Admin use only) Creates a counter for each time the given word is used.",
 
         options: [
             {
                 name: "word",
                 description: "The word that will be counted",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
+    {
+        name: "removewordcounter",
+        description: "(Admin use only) Removes the counter for the specified word, if it exists.",
+
+        options: [
+            {
+                name: "word",
+                description: "The word counter that will be removed",
                 type: ApplicationCommandOptionType.String,
                 required: true
             }

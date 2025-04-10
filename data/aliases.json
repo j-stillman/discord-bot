@@ -1,7 +1,0 @@
-{
-    "commandAlias": {
-        "pingu": "ping",
-        "commands": "help",
-        "actions": "help"
-    }
-}

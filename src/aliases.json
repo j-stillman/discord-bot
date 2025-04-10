@@ -1,0 +1,15 @@
+{
+    "commandAlias": {
+        "pingu": "ping",
+        "commands": "help",
+        "about": "info",
+        "actions": "help",
+        "counter": "counters",
+        "counts": "counters",
+        "count": "counters",
+        "randommeme": "random",
+        "randomeme": "random",
+        "rand": "random",
+        "enjoy": "enjoyyourself"
+    }
+}

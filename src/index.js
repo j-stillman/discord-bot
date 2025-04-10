@@ -2,7 +2,7 @@
 // Author: Jeremiah Stillman
 // Date: 04/07/25
 
-// This file defines the main entrypoint for the discord bot. It loads event and command files, then logs in.
+// This file is the main entrypoint for the discord bot. It loads event and command files, then logs in.
 
 // We must require 'dotenv' to be able to access the token. The token must stay private in .env
 require('dotenv').config();
@@ -12,7 +12,8 @@ require('dotenv').config();
 // See the Discord documentation on Intents here: https://discord.com/developers/docs/topics/gateway#list-of-intents
 const { Client, 
         Collection,
-        IntentsBitField } = require('discord.js');
+        IntentsBitField,
+        Partials } = require('discord.js');
 
 // Require fs to be able to access other js files
 const fs = require('fs').promises;
@@ -24,7 +25,9 @@ const client = new Client({
         IntentsBitField.Flags.GuildMembers,
         IntentsBitField.Flags.GuildMessages,
         IntentsBitField.Flags.MessageContent,
+        IntentsBitField.Flags.GuildMessageReactions,
     ],
+    partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
 // Collection of commands for client

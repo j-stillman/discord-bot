@@ -5,7 +5,8 @@
 // This file defines the messageCreate event for the discord bot
 // Parses messages and responds accordingly. Ex: responding to !commands or counting instances of a certain pre-defined word
 
-const { ResolveCommandAlias } = require("../fileFunctions");
+const { resolveCommandAlias, loadServerData, saveServerData } = require("../fileFunctions");
+const { capitalizeFirstLetter, chooseRandom } = require("../utilFunctions");
 
 const commandPrefix = '!';
 
@@ -18,6 +19,10 @@ module.exports = {
         if (message.author.bot) { return; }
         
         // Check if a bot command, or if a regular message
+        // TODO this check needs to be more specific. If one were to type "! message text here"
+        // or maybe they're exclaiming "!!! omg wow" then the bot will think it is a command
+        // This poses a problem where if they say a word that's being counted, then it won't trigger
+        // because it already thinks it is processing a command.
         if (message.content.startsWith(commandPrefix)) {
             await processCommand(message, client);
         }else{
@@ -29,7 +34,7 @@ module.exports = {
 };
 
 
-// Helper function to process a !command if detected
+// Function to process a !command if detected
 async function processCommand(message, client)
 {
 
@@ -43,7 +48,7 @@ async function processCommand(message, client)
     if (!command) {
         // If the command wasn't found, check if it is an alias and resolve
         console.log("command wasn't found so attempting to resolve alias")
-        const resolvedAlias = await ResolveCommandAlias(commandName);
+        const resolvedAlias = await resolveCommandAlias(commandName);
         if (resolvedAlias) {
             console.log("alias resolved!");
             command = client.commands.get(resolvedAlias);
@@ -69,10 +74,68 @@ async function processCommand(message, client)
 }// end processCommand()
 
 
-// Helper function to process a regular message, such as to find important words
+// Function to process a regular message, such as to find important words
 async function processMessage(message, client) 
 {
 
     console.log("processing a message...");
+    await processWordCounts(message);
+    
 
 }// end processMessage()
+
+
+// Helper function to compare a message against the word counters
+async function processWordCounts(message)
+{
+
+    // Get the message string in lowercase
+    var msg = message.content.toLowerCase();
+    var msgTokens = msg.split(/\s+/);
+
+    // Load the server data to get the word counters
+    var serverData = await loadServerData(message.guild);
+    var wordCounts = serverData.wordCounts;
+    var wordIncreases = {};
+
+    // For each active counter, check to see if that word appears in the string
+    Object.keys(wordCounts).forEach(word => {
+ 
+        wordIncreases[word] = 0;
+        for (token of msgTokens) {
+            if (token.includes(word)) {
+                wordIncreases[word]++;
+            }
+        }
+
+    });
+
+    // Loop through the word counters and update/save the server data if applicable and announce the increases as a message
+    var counterTriggered = false;
+    var counterResponse = "**Ding!** " + chooseRandom([':bellhop:', ':bell:', ':tada:']);
+
+    Object.keys(wordIncreases).forEach(word => {
+        let increase = wordIncreases[word];
+        if (increase > 0) {
+            wordCounts[word] += increase;
+
+            let upperCaseWord = capitalizeFirstLetter(word);
+            counterResponse = counterResponse + `\n${upperCaseWord} counter: ${wordCounts[word]}`;
+            
+            // Set it so the counters will be saved at the end of this process
+            counterTriggered = true;
+        }
+    });
+
+    // If words were found, then save it to the json, and also announce it to the server with a fun message
+    if (counterTriggered) {
+
+        serverData.wordCounts = wordCounts;
+        await saveServerData(message.guild, serverData);
+        await message.channel.send(counterResponse);
+
+    }
+
+}// end processWordCounts()
+
+
