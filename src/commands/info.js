@@ -15,7 +15,7 @@ module.exports = {
     async execute(message, args, client) {
         
         let serverData = await loadServerData(message.guild);
-        let homeChannelName = "undefined";
+        let homeChannelName = "`undefined`";
         let homeChannel;
         if (serverData.homeChannel) {
             homeChannel = await client.channels.fetch(serverData.homeChannel);

@@ -3,6 +3,11 @@
 // Date: 04/07/25
 
 const { loadServerData, saveServerData } = require("../fileFunctions");
+const { PermissionsBitField } = require('discord.js');
+const { elementInArray } = require("../utilFunctions");
+
+// Use moment-timezone to verify that a given timezone is valid
+const moment = require('moment-timezone');
 
 // This file defines the interactionCreate event, which is for slash commands. 
 // I have chosen to give slash commands a more administrative nature on this bot, but that may change.  
@@ -28,6 +33,8 @@ async function processSlashCommand(interaction, client)
 {
 
     console.log("processing slash command...");
+
+    const callerIsAdmin = interaction.member.permissionsIn(interaction.channel).has(PermissionsBitField.Flags.Administrator);
 
     // Respond to slash commands depending on their names
     switch(interaction.commandName) {
@@ -55,7 +62,7 @@ async function processSlashCommand(interaction, client)
 
             // Restrict the use of this command to admins only.
             // Code used to check if admin: https://stackoverflow.com/a/70563774
-            if (interaction.member.permissionsIn(interaction.channel).has("ADMINISTRATOR")) {
+            if (callerIsAdmin) {
 
                 
                 // Load the save data for the guild, set the homeChannel, then save it back
@@ -78,7 +85,7 @@ async function processSlashCommand(interaction, client)
             // format "/addwordcounter word"
 
             // Restrict the use of this command to admins only.
-            if (interaction.member.permissionsIn(interaction.channel).has("ADMINISTRATOR")) {
+            if (callerIsAdmin) {
                 // Caller is admin, so go forward with the addition of the counter
                 await addWordCounter(interaction);
 
@@ -92,9 +99,63 @@ async function processSlashCommand(interaction, client)
         case "removewordcounter":
 
             // Restrict the use of this command to admins only.
-            if (interaction.member.permissionsIn(interaction.channel).has("ADMINISTRATOR")) {
+            if (callerIsAdmin) {
                 // Caller is admin, so go forward with the addition of the counter
                 await removeWordCounter(interaction);
+
+            }else{
+                // Caller is not an admin, so tell them the command cannot be used
+                await interaction.reply(`You do not have permission to use this command.`);
+            
+            }
+
+            break;
+        case "enablecounterdings":
+
+            // Restrict the use of this command to admins only.
+            if (callerIsAdmin) {
+                // Caller is admin, so go forward with the addition of the counter
+                await enableCounterDings(interaction);
+
+            }else{
+                // Caller is not an admin, so tell them the command cannot be used
+                await interaction.reply(`You do not have permission to use this command.`);
+            
+            }
+
+            break;
+        case "settimezone":
+            
+            // TODO turn this into a dropdown menu so admins do not need to meticulously type the timezone name
+            // Restrict the use of this command to admins only.
+            if (callerIsAdmin) {
+                // Caller is admin, so go forward with setting timezone
+                await setTimezone(interaction);
+            }else{
+                await interaction.reply(`You do not have permission to use this command.`);
+            }
+
+            break;
+        case "enablegoodmornings":
+
+            // Restrict the use of this command to admins only.
+            if (callerIsAdmin) {
+                // Caller is admin, so go forward with enabling good morning posts
+                await enableGoodMornings(interaction);
+
+            }else{
+                // Caller is not an admin, so tell them the command cannot be used
+                await interaction.reply(`You do not have permission to use this command.`);
+            
+            }
+
+            break;
+        case "enablegoodnights":
+
+            // Restrict the use of this command to admins only.
+            if (callerIsAdmin) {
+                // Caller is admin, so go forward with enabling good night posts
+                await enableGoodNights(interaction);
 
             }else{
                 // Caller is not an admin, so tell them the command cannot be used
@@ -140,7 +201,7 @@ async function addWordCounter(interaction)
         serverData.wordCounts = wordCounts;
         await saveServerData(interaction.guild, serverData);
 
-        await interaction.reply(`Word counter has been set to count "${word}"!`);
+        await interaction.reply(`Word counter has been set to count \`${word}\`!`);
 
     }
 
@@ -169,11 +230,11 @@ async function removeWordCounter(interaction)
         serverData.wordCounts = wordCounts;
         await saveServerData(interaction.guild, serverData);
 
-        await interaction.reply(`Word counter for "${word}" has been deleted.`);
+        await interaction.reply(`Word counter for \`${word}\` has been deleted.`);
     
     }else{
         // No counter for that word has been found
-        await interaction.reply(`No word counter was found for "${word}".`);
+        await interaction.reply(`No word counter was found for "\`${word}"\`.`);
 
     }
 
@@ -199,3 +260,139 @@ function wordCountsContains(wordCounts, word)
 }// end wordCountsContains()
 
 
+// Helper function to enable whether goodmorning memes are sent daily
+async function enableGoodMornings(interaction)
+{
+
+    // Obtain the server data
+    let serverData = await loadServerData(interaction.guild);
+
+    // Get the argument and then ensure it is either true or false
+    let enabled = interaction.options.get("enabled").value.toLowerCase();
+
+    // Ensure the response is a valid true/false
+    if (elementInArray(enabled, ['true', 'false', 't', 'f'])) {
+           
+        if (!serverData.hasOwnProperty("goodMorningsEnabled")) { serverData.goodMorningsEnabled = false; }
+
+        if (enabled.charAt(0) == 't') {
+            serverData.goodMorningsEnabled = true;
+            await interaction.reply(`☀️ Good morning memes enabled!`);
+        }else if (enabled.charAt(0) == 'f') {
+            serverData.goodMorningsEnabled = false;
+            await interaction.reply(`🚫 Good morning memes disabled.`);
+        }
+
+        await saveServerData(interaction.guild, serverData);
+
+        
+    
+    }else{
+        // The user did not enter true or false
+        await interaction.reply('Please enter `true` or `false` to use this setting.');
+
+    }
+
+}// end enableGoodMornings()
+
+
+// Helper function to enable whether goodnight memes are sent daily
+async function enableGoodNights(interaction)
+{
+
+    // Obtain the server data
+    let serverData = await loadServerData(interaction.guild);
+
+    // Get the argument and then ensure it is either true or false
+    let enabled = interaction.options.get("enabled").value.toLowerCase();
+
+    // Ensure the response is a valid true/false
+    if (elementInArray(enabled, ['true', 'false', 't', 'f'])) {
+           
+        if (!serverData.hasOwnProperty("goodNightsEnabled")) { serverData.goodNightsEnabled = false; }
+
+        if (enabled.charAt(0) == 't') {
+            serverData.goodNightsEnabled = true;
+            await interaction.reply(`🌙 Good night memes enabled!`);
+        }else if (enabled.charAt(0) == 'f') {
+            serverData.goodNightsEnabled = false;
+            await interaction.reply(`🚫 Good night memes disabled.`);
+        }
+
+        await saveServerData(interaction.guild, serverData);
+
+        
+    
+    }else{
+        // The user did not enter true or false
+        await interaction.reply('Please enter `true` or `false` to use this setting.');
+
+    }
+
+}// end enableGoodNights()
+
+
+// Helper function to enable whether the bot sends a "ding!" message when a word counter is triggered
+async function enableCounterDings(interaction)
+{
+
+    // Obtain the server data
+    let serverData = await loadServerData(interaction.guild);
+
+    // Get the argument and then ensure it is either true or false
+    let enabled = interaction.options.get("enabled").value.toLowerCase();
+
+    // Ensure the response is a valid true/false
+    if (elementInArray(enabled, ['true', 'false', 't', 'f'])) {
+           
+        if (!serverData.hasOwnProperty("counterDingsEnabled")) { serverData.counterDingsEnabled = true; }
+
+        if (enabled.charAt(0) == 't') {
+            serverData.counterDingsEnabled = true;
+            await interaction.reply(`🛎️ Word counter dings enabled!`);
+        }else if (enabled.charAt(0) == 'f') {
+            serverData.counterDingsEnabled = false;
+            await interaction.reply(`🚫 Word counter dings disabled.`);
+        }
+
+        await saveServerData(interaction.guild, serverData);
+
+        
+    
+    }else{
+        // The user did not enter true or false
+        await interaction.reply(`Please enter a valid timezone.`);
+
+    }
+
+}// end enableCounterDings()
+
+
+// Function to set the timezone of the server
+async function setTimezone(interaction)
+{
+
+    // Obtain the server data
+    let serverData = await loadServerData(interaction.guild);
+
+    // Get the argument and then ensure it is a valid timezone
+    let timezone = interaction.options.get("timezone").value;
+
+    // Get the list of valid timezones to compare (for now it's very case-sensitive) 
+    let validTimezones = moment.tz.names();
+
+    if (validTimezones.includes(timezone)) {
+           
+        // Set the default timezone to New York if one hasn't been set yet
+        serverData.timezone = timezone;
+
+        await interaction.reply(`🕒 Server timezone has been set to \`${timezone}\`!`);
+        await saveServerData(interaction.guild, serverData);
+
+    }else{
+        // The user did not enter a valid timezone
+        await interaction.reply(`Please enter valid timezone.`);
+
+    }
+
+}// end setTimezone()

@@ -74,6 +74,58 @@ const commands = [
             }
         ]
     },
+    {
+        name: "enablecounterdings",
+        description: "(Admin use only) Enable if the bot sends a message when a word counter is triggered",
+
+        options: [
+            {
+                name: "enabled",
+                description: "Whether the bot will send a message when a word counter is triggered",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
+    {
+        name: "settimezone",
+        description: "(Admin use only) Sets the timezone in which the bot sends good morning and good night memes.",
+
+        options: [
+            {
+                name: "timezone",
+                description: "Timezone in which the bot sends good morning and good night memes",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
+    {
+        name: "enablegoodmornings",
+        description: "(Admin use only) Enable the bot to send good morning memes (true) or not (false).",
+
+        options: [
+            {
+                name: "enabled",
+                description: "Whether the bot will send good morning memes (true/false)",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
+    {
+        name: "enablegoodnights",
+        description: "(Admin use only) Enable the bot to send good night memes (true) or not (false).",
+
+        options: [
+            {
+                name: "enabled",
+                description: "Whether the bot will send good night memes (true/false)",
+                type: ApplicationCommandOptionType.String,
+                required: true
+            }
+        ]
+    },
 ];
 
 // Initialize REST to the bot token in env

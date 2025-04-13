@@ -10,6 +10,8 @@ const { elementInArray, pushToLimitedQueue } = require('./utilFunctions');
 // Template of a basic set of server data
 const blankServerData = {
     wordCounts: {},
+    goodMorningsEnabled: false,
+    goodNightsEnabled: false,
     lastMemes: {
         sunday: [],
         monday: [],
@@ -20,7 +22,8 @@ const blankServerData = {
         saturday: [],
         gn: [],
         seenit: [],
-        random: []
+        random: [],
+        aesthetic: []
     },
     homeChannel: null
 };
@@ -98,7 +101,7 @@ async function resolveCommandAlias(commandAlias)
 }// end resolveCommandAlias()
 
 
-// Function to retrieve a random image path from a given directory
+// Function to retrieve a random image path from a given directory, using a GUILD object
 async function getRandomImagePath(folder, guild)
 {
 
@@ -110,9 +113,14 @@ async function getRandomImagePath(folder, guild)
 
     // Get the 'lastMemes' arrays from serverData. If they don't exist, create them
     var lastMemes, randImage;
-    if (!serverData.lastMemes || !serverData.lastMemes[folder]) {
+    if (!serverData.hasOwnProperty("lastMemes")) {
         // The lastMemes 'cache' has not been created yet, so add that
         serverData.lastMemes = blankServerData.lastMemes;
+    }
+    if (serverData.hasOwnProperty("lastMemes")) {
+        if (!serverData.lastMemes.hasOwnProperty("folder")) {
+            serverData.lastMemes[folder] = [];
+        }
     }
     lastMemes = serverData.lastMemes[folder];
 
@@ -149,6 +157,7 @@ async function getRandomImagePath(folder, guild)
     return imagesDir + folder + '/' + randImage;
 
 }// end getRandomImagePath()
+
 
 
 module.exports = {

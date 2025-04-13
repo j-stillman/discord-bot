@@ -22,10 +22,11 @@ module.exports = {
         if (message.reference) {
             try {
                 reference = await message.channel.messages.fetch(message.reference.messageId);
-                reference.react('417863853154500610');
             }catch (error) {
                 console.log("Error fetching message reference: ", error);
             }
+
+            reference.react('417863853154500610');
         }
 
         // Get the path of the image to send, updating the server's 'last memes' cache in the process
@@ -35,7 +36,7 @@ module.exports = {
         sendImageToChannel({
             channel: message.channel,
             path: imagePath,
-            message: `Oup! **${message.author.globalName}** has already seen that meme!`,
+            message: `Uh-oh! **${message.author.globalName}** has already seen that meme!`,
             replyTo: reference
         });
 

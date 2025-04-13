@@ -68,7 +68,8 @@ async function processCommand(message, client)
 
     }else{
         // Unrecognized command, direct users to use !help command?
-        message.reply(`Command not recognized. Use ${commandPrefix}help to see a list of valid commands.`);
+        // This is actually somewhat annoying especially if you have another bot which also takes commands with the same prefix
+        //message.reply(`Command not recognized. Use ${commandPrefix}help to see a list of valid commands.`);
     }
 
 }// end processCommand()
@@ -120,7 +121,7 @@ async function processWordCounts(message)
             wordCounts[word] += increase;
 
             let upperCaseWord = capitalizeFirstLetter(word);
-            counterResponse = counterResponse + `\n${upperCaseWord} counter: ${wordCounts[word]}`;
+            counterResponse = counterResponse + `\n\`${upperCaseWord}\` counter: ${wordCounts[word]}`;
             
             // Set it so the counters will be saved at the end of this process
             counterTriggered = true;
@@ -131,11 +132,19 @@ async function processWordCounts(message)
     if (counterTriggered) {
 
         serverData.wordCounts = wordCounts;
+        
+        // Only send counterResponse if the server admin has enabled it (enabled by default)
+        if (!serverData.hasOwnProperty("counterDingsEnabled")) {
+            serverData.counterDingsEnabled = true;
+        }
+
+        if (serverData.counterDingsEnabled) {
+            await message.channel.send(counterResponse);
+        }
+        
         await saveServerData(message.guild, serverData);
-        await message.channel.send(counterResponse);
 
     }
 
 }// end processWordCounts()
-
 

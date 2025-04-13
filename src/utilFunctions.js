@@ -105,7 +105,7 @@ async function sendImageToChannel(msgData)
         replyTo = msgData.replyTo;
     }
 
-    // Now try and send the image
+    // Now try and send the image. Make the message a reply if a replyTo message was designated
     try {
         if (!replyTo) {
             await channel.send({ content: message, files: [path] });

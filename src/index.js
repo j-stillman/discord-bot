@@ -13,6 +13,7 @@ require('dotenv').config();
 const { Client, 
         Collection,
         IntentsBitField,
+        PermissionsBitField,
         Partials } = require('discord.js');
 
 // Require fs to be able to access other js files
