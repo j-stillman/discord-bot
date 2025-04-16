@@ -12,7 +12,9 @@ module.exports = {
 
     async execute(message, args, client) {
         
-        await message.channel.send('Pong!');
+        await message.channel.send({
+            content: "Pong!"
+        });
     
     }// end execute()
 

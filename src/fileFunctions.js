@@ -3,7 +3,6 @@
 // Date: 04/07/25
 
 // This file defines functionality for json reading/writing
-
 const fs = require('fs').promises;
 const { elementInArray, pushToLimitedQueue } = require('./utilFunctions');
 
@@ -116,11 +115,8 @@ async function getRandomImagePath(folder, guild)
     if (!serverData.hasOwnProperty("lastMemes")) {
         // The lastMemes 'cache' has not been created yet, so add that
         serverData.lastMemes = blankServerData.lastMemes;
-    }
-    if (serverData.hasOwnProperty("lastMemes")) {
-        if (!serverData.lastMemes.hasOwnProperty("folder")) {
-            serverData.lastMemes[folder] = [];
-        }
+    }else if (!serverData.lastMemes.hasOwnProperty(folder)) {
+        serverData.lastMemes[folder] = [];
     }
     lastMemes = serverData.lastMemes[folder];
 
