@@ -40,7 +40,8 @@ const groupMonikers = [
     "buddies",
     "compatriots",
     "loved ones",
-    "homies"
+    "homies",
+    "accomplices"
 ];
 
 module.exports = {
@@ -71,7 +72,7 @@ module.exports = {
 
                 let memeToSend = await checkServerTime(serverData);
 
-                console.log("memeToSend =", memeToSend);
+                console.log("  memeToSend =", memeToSend);
 
                 // Send the meme to the server based on what checkServerTime returned (if valid)
                 if (memeToSend != dailyMemeTypes.NONE) {

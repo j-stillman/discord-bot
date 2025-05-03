@@ -1,8 +1,8 @@
 // fileFunctions.js
 // Author: Jeremiah Stillman
 // Date: 04/07/25
+// This file defines functionality for json reading/writing, as well as sourcing image files locally
 
-// This file defines functionality for json reading/writing
 const fs = require('fs').promises;
 const { elementInArray, pushToLimitedQueue } = require('./utilFunctions');
 
@@ -35,6 +35,7 @@ async function saveServerData(guild, data)
     var filename = "data_" + guild.id + ".json";
 
     // Write to the file
+    // TODO replace fs.writeFile with writing to S3 instead
     await fs.writeFile('./data/' + filename, JSON.stringify(data, null, 2), (err) => {
         if (err) {
             console.error("Error: ", err);
@@ -56,6 +57,7 @@ async function loadServerData(guild)
     var filename = "data_" + guild.id + ".json";
 
     // Read the file
+    // TODO replace the fs reading with S3 functions
     try {
         jsonData = await fs.readFile('./data/' + filename, 'utf-8');
         data = JSON.parse(jsonData);
@@ -121,6 +123,7 @@ async function getRandomImagePath(folder, guild)
     lastMemes = serverData.lastMemes[folder];
 
     // Open the file and get an array of all the images
+    // TODO replace these directory reads with S3 bucket reads
     try {
 
         const imageArray = await fs.readdir(imagesDir + folder + '/');
