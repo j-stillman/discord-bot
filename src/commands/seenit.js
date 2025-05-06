@@ -5,7 +5,7 @@
 // Functionally equivalent to the "random" command which sends a random meme, but draws from a different, 
 // more topical meme directory where all the memes are about "already seeing that meme" 
 const { sendImageToChannel } = require('../utilFunctions');
-const { getRandomImagePath } = require('../fileFunctions');
+const { getRandomImagePath, getRandomImageKey } = require('../fileFunctions');
 
 module.exports = {
     
@@ -16,9 +16,12 @@ module.exports = {
 
     async execute(message, args, client) {
 
+        // Start typing to indidcate that the bot is in the process of responding
+        message.channel.sendTyping();
+
         var reference;
 
-        // See if the message is a reply to a meme. If it is, the bot can reply directly to that same meme for comedic effect 
+        // See if the message is a reply. If it is, the bot can reply directly to that same meme for comedic effect 
         if (message.reference) {
             try {
                 reference = await message.channel.messages.fetch(message.reference.messageId);
@@ -26,17 +29,18 @@ module.exports = {
                 console.log("Error fetching message reference: ", error);
             }
 
-            reference.react('417863853154500610');
+            if (reference) { reference.react('417863853154500610'); }
         }
 
         // Get the path of the image to send, updating the server's 'last memes' cache in the process
-        var imagePath = await getRandomImagePath('seenit', message.guild);
+        var imageKey = await getRandomImageKey('seenit', message.guild);
 
         // Finally send the image with a little message alongside it. 
         sendImageToChannel({
             channel: message.channel,
-            path: imagePath,
+            s3Key: imageKey,
             message: `Uh-oh! **${message.author.globalName}** has already seen that meme!`,
+            attachmentName: 'seenit',
             replyTo: reference
         });
 

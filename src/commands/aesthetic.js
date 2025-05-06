@@ -1,9 +1,9 @@
 // aesthetic.js
 // Author: Jeremiah Stillman
 // Date: 04/11/25
-// This file defines the "random" command which sends a random meme from the "random" images folder
+// This file defines the "aesthetic" command which sends a random aesthetic image from the "aesthetic" images folder
 const { sendImageToChannel } = require('../utilFunctions');
-const { getRandomImagePath } = require('../fileFunctions');
+const { getRandomImagePath, getRandomImageKey } = require('../fileFunctions');
 
 module.exports = {
     
@@ -14,13 +14,17 @@ module.exports = {
 
     async execute(message, args, client) {
 
+        // Start typing to indidcate that the bot is in the process of responding
+        message.channel.sendTyping();
+
         // Get the path of the image to send, updating the server's 'last memes' cache in the process
-        var imagePath = await getRandomImagePath('aesthetic', message.guild);
+        var imageKey = await getRandomImageKey('aesthetic', message.guild);
 
         // Finally send the image with a little message alongside it. 
         sendImageToChannel({
             channel: message.channel,
-            path: imagePath,
+            s3Key: imageKey,
+            attachmentName: 'aesthetic'
         });
 
     }// end execute()

@@ -14,10 +14,14 @@ module.exports = {
 
     async execute(message, args, client) {
         
+        // Start typing to indicate the bot is in the process of responding
+        message.channel.sendTyping();
+
         sendImageToChannel({
             channel: message.channel,
-            path: './images/other/enjoy.mp4',
+            s3Key: 'images/other/other_6196790140.mp4',
             message: `SAINT PEPSI - Enjoy Yourself 🌜🌜🌜`,
+            attachmentName: 'enjoy',
             replyTo: message
         });
     

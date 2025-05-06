@@ -7,8 +7,9 @@
 const fs = require('fs').promises;
 
 const { ActivityType } = require('discord.js');
-const { resolveCommandAlias, loadServerData, getRandomImagePath } = require('../fileFunctions');
+const { resolveCommandAlias, loadServerData, getRandomImagePath, getRandomImageKey } = require('../fileFunctions');
 const { sendImageToChannel, chooseRandom, capitalizeFirstLetter } = require('../utilFunctions');
+const { saveJSONS3, getObjectKeys } = require('../s3Functions');
 
 // Use node-cron to schedule sending daily memes
 const cron = require('node-cron');
@@ -39,9 +40,14 @@ const groupMonikers = [
     "crew", 
     "buddies",
     "compatriots",
+    "associates",
     "loved ones",
     "homies",
-    "accomplices"
+    "accomplices",
+    "homeslices",
+    "fidus Achates",
+    "bezzies",
+    "confidants"
 ];
 
 module.exports = {
@@ -54,19 +60,23 @@ module.exports = {
             type: ActivityType.Custom,
         });
 
-        // TODO create a schedule using node-cron to send daily memes (probably better/cleaner than using a timer and checking the date/time each minute)
+        // Create a schedule using node-cron to send daily memes (probably better/cleaner than using a timer and checking the date/time each minute)
         cron.schedule('0 * * * *', async () => {
 
             const now = new Date();
             console.log("Beginning of hour. Current time:", now);
 
             // Every hour at 00 minutes, this will run. Go through each server's data.json file and retrieve their home channel if set
-            const dataFiles = (await fs.readdir('./data/')).filter(file => (file.includes('data_') && file.endsWith('.json')));
+            //const dataFiles = (await fs.readdir('./data/')).filter(file => (file.includes('data_') && file.endsWith('.json')));
+            const dataFolder = await getObjectKeys(process.env.BUCKET_NAME, 'data/');
+            const dataFiles = dataFolder.filter(file => (file.includes('data_') && file.endsWith('.json')));
 
             for (const file of dataFiles) {
 
-                // Obtain the guild via the filename (TODO feels like a lousy method, maybe change it somehow)
-                let guildID = file.substring(5).substring(0, 18);
+                // Obtain the guild via the filename (TODO this is a REALLY lousy solution, maybe change it somehow)
+                let prefixTemplate = 'data/data_';
+                let guildIDTemplate = '123456789123456789';
+                let guildID = file.substring(prefixTemplate.length).substring(0, guildIDTemplate.length);
                 let guild = await client.guilds.fetch(guildID);
                 let serverData = await loadServerData(guild);
 
@@ -146,6 +156,9 @@ async function sendDailyMeme(client, serverData, guild, memeType)
         console.log("Error caught fetching channel.");
         return;
     }
+
+    // Start typing to indidcate that the bot is in the process of sending a message
+    homeChannel.sendTyping();
     
     // Set up a random group moniker to address the server, for a bit more variety
     let groupMoniker = chooseRandom(groupMonikers);
@@ -161,24 +174,24 @@ async function sendDailyMeme(client, serverData, guild, memeType)
 
         // Get the path of the image to send, updating the server's 'last memes' cache in the process
         // TODO check if it is a holiday. If so, send a special meme and change gmMessage to reflect that
-        let imagePath = await getRandomImagePath(weekday, guild);
+        let imageKey = await getRandomImageKey(weekday, guild);
 
         // Finally send the image with a little message alongside it. 
         sendImageToChannel({
             channel: homeChannel,
-            path: imagePath,
+            s3Key: imageKey,
             message: gmMessage
         });
 
     }else if (memeType == dailyMemeTypes.GN) {
         // Can just draw from the "gn" folder and go from there
         // Get the path of the image to send, updating the server's 'last memes' cache in the process
-        let imagePath = await getRandomImagePath('gn', guild);
+        let imageKey = await getRandomImageKey('gn', guild);
 
         // Finally send the image with a little message alongside it. 
         sendImageToChannel({
             channel: homeChannel,
-            path: imagePath,
+            s3Key: imageKey,
             message: `Good night, ${groupMoniker} 🌙`
         });
 

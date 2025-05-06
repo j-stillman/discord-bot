@@ -2,6 +2,9 @@
 // Author: Jeremiah Stillman
 // Date: 04/08/25
 
+const { AttachmentBuilder, Attachment } = require("discord.js");
+const { getAttachmentFromS3 } = require("./s3Functions");
+
 // This file specifies various helpful functions that will be used throughout this program
 
 // Simple function to capitalize the first letter of a string
@@ -79,20 +82,66 @@ function jsonArgument(arg)
 }// end jsonArgument
 
 
+// Function to create a discord attachment from the requested local path
+// path = relative local path of the requested image
+// name = the filename you wish the attachment to have. leave out the extension
+async function createMediaAttachment(path, name = 'attachment')
+{
+
+    // Build the filename of the object being requested by obtaining its type extension and name parameter
+    // By default the filename will be attachment.[type] where type is the same as the object in the bucket
+    // But if name is specified then it will be [name].[type] e.g. cat.jpg instead of attachment.jpg
+    const pathTokens = path.split('.');
+    const extension = pathTokens[pathTokens.length - 1];
+    const filename = name + '.' + extension;
+
+    // Create the attachment using this info
+    try {
+        
+        const attachment = new AttachmentBuilder(path, { name: filename });
+        return attachment;
+    
+    }catch (error) {
+        console.log("crateMediaAttachment(): Error caught:", error);
+        return null;
+    }
+
+
+}// end getAttachmentFromS3()
+
+
 // Function to send an image to a given channel, with an additional message included
 async function sendImageToChannel(msgData)
 {
 
-    var channel, path, message, replyTo;
-
-    // Ensure all the necessary arguments exist
-    if (!msgData.channel || !msgData.path) {
-        console.error("Error: sendImageToChannel(): destination channel and/or image path undefined.")
-        return;
-    }
+    var channel, path, s3Key, attachmentName, message, replyTo;
 
     channel = msgData.channel;
     path = msgData.path;
+    s3Key = msgData.s3Key;
+
+    var useS3 = false;
+
+    // Ensure all the necessary arguments exist: channel
+    if (!channel) {
+        console.error("Error: sendImageToChannel(): destination channel undefined.")
+        return;
+    }
+
+    // Ensure all the necessary arguments exist: image path OR S3 key
+    if (!s3Key && !path) {
+        console.error("Error: sendImageToChannel(): no local image path or S3 key defined.")
+        return;
+    }    
+
+    // Defining a local image path will override the S3 Key since it's faster (generally you will choose one or the other though)
+    if (s3Key && path) {
+        useS3 = false;
+    }else if (s3Key && !path) {
+        useS3 = true;
+    }else if (!s3Key && path) {
+        useS3 = false; // I think this is redundant
+    }
 
     // Check for additional arguments
     message = "";
@@ -105,12 +154,25 @@ async function sendImageToChannel(msgData)
         replyTo = msgData.replyTo;
     }
 
+    attachmentName = "attachment";
+    if (msgData.attachmentName) {
+        attachmentName = msgData.attachmentName;
+    }
+
+    // Create an attachment using either path or the S3 key
+    var attachment;
+    if (useS3) {
+        attachment = await getAttachmentFromS3(process.env.BUCKET_NAME, s3Key, attachmentName);
+    }else{
+        attachment = await createMediaAttachment(path, attachmentName);
+    }
+
     // Now try and send the image. Make the message a reply if a replyTo message was designated
     try {
         if (!replyTo) {
-            await channel.send({ content: message, files: [path] });
+            await channel.send({ content: message, files: [attachment] });
         }else{
-            await replyTo.reply({ content: message, files: [path] });
+            await replyTo.reply({ content: message, files: [attachment] });
         }
     }catch (error) {
         console.log("sendImageToChannel(): Error caught: ", error);

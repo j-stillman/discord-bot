@@ -55,6 +55,7 @@ async function processCommand(message, client)
         }
     }
 
+    // Now that the command has been resolved (if applicable), try running the command
     if (command) {
         
         try {
@@ -139,6 +140,10 @@ async function processWordCounts(message)
         }
 
         if (serverData.counterDingsEnabled) {
+
+            // Start typing to indidcate that the bot is in the process of responding
+            message.channel.sendTyping();
+            
             await message.channel.send(counterResponse);
         }
         

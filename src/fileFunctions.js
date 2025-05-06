@@ -5,6 +5,7 @@
 
 const fs = require('fs').promises;
 const { elementInArray, pushToLimitedQueue } = require('./utilFunctions');
+const { saveJSONS3, fetchJSONS3, getObjectKeys } = require('./s3Functions');
 
 // Template of a basic set of server data
 const blankServerData = {
@@ -27,23 +28,21 @@ const blankServerData = {
     homeChannel: null
 };
 
+// Constant S3 prefixes
+const BUCKET_NAME = process.env.BUCKET_NAME;
+const directoryPrefix = 'data/'; 
+const imagesPrefix = 'images/';
 
 // Function to save the server data. Takes a guild and data object as arguments
 async function saveServerData(guild, data) 
 {
 
+    // Construct the filename and key based on the guild ID
     var filename = "data_" + guild.id + ".json";
+    var key = directoryPrefix + filename;
 
-    // Write to the file
-    // TODO replace fs.writeFile with writing to S3 instead
-    await fs.writeFile('./data/' + filename, JSON.stringify(data, null, 2), (err) => {
-        if (err) {
-            console.error("Error: ", err);
-            return;
-        }
-    });
-
-    console.log(`${filename} written successfully.`);
+    // Write to the file via the S3 functions
+    await saveJSONS3(BUCKET_NAME, key, data);
 
 }// end saveServerData()
 
@@ -53,27 +52,23 @@ async function loadServerData(guild)
 {
 
     // Find the filename based on guildID
-    var jsonData, data;
     var filename = "data_" + guild.id + ".json";
+    var key = directoryPrefix + filename;
+    var data;
 
-    // Read the file
-    // TODO replace the fs reading with S3 functions
+    // Read the file via the S3 functions
     try {
-        jsonData = await fs.readFile('./data/' + filename, 'utf-8');
-        data = JSON.parse(jsonData);
-    }catch (error) {
-        if (error.code === 'ENOENT') {
-            
-            console.log(`File not found. Creating ${filename}...`);
-            
+
+        data = await fetchJSONS3(BUCKET_NAME, key);
+
+        // If fetchJSONS3 returned null, then create some blank server data and return that
+        if (!data) {
             data = blankServerData;
-            await saveServerData(guild, data);
-
-            console.log(`${filename} created successfully.`);
-
-        }else{
-            console.log("Error caught: ", error);
         }
+
+    }catch (error) {
+        console.log('fetchJSONS3(): Error caught:', error);
+        return null;
     }
 
     return data;
@@ -85,24 +80,27 @@ async function loadServerData(guild)
 async function resolveCommandAlias(commandAlias)
 {
  
-    // Read the data.json file and obtain the list of command aliases
-    // A 'command alias' in this instance is just an alternate word or spelling that corresponds to an established command.
+    // Read the aliases.json file in S3 and obtain the list of command aliases
+    // A 'command alias' in this scenario is just an alternate word or spelling that corresponds to an existing command.
     // They are stored in the aliases.json file to be easily added, and to not over-complicate existing command files (e.g. adding multiple names)
-    var data;
-
+    var aliases;
     try {
-        const jsonData = await fs.readFile('./src/aliases.json');
-        data = JSON.parse(jsonData).commandAlias;
+
+        const data = await fetchJSONS3(BUCKET_NAME, 'data/aliases.json');
+        aliases = data.commandAlias;
+
     }catch (error) {
-        console.log("Error reading file: ", error);
+        console.log('Error reading from S3:', error);
     }
 
-    return data[commandAlias];
+    return aliases[commandAlias];
 
 }// end resolveCommandAlias()
 
 
 // Function to retrieve a random image path from a given directory, using a GUILD object
+// This function is for retrieving from the local machine, NOT S3. As such, you probably won't
+// see this called very much going forward. getRandomImageKey() is its S3 equivalent.
 async function getRandomImagePath(folder, guild)
 {
 
@@ -158,11 +156,74 @@ async function getRandomImagePath(folder, guild)
 }// end getRandomImagePath()
 
 
+// Function to retrieve a random S3 image key given a subfolder. Looks in 'images/' only
+// folder - the name of the subfolder of images/ in the bucket.
+// guild - a guild object so we know which image cache to compare against 
+async function getRandomImageKey(folder, guild)
+{
+
+    const prefix = 'images/';
+    const cacheSize = 3;
+    
+    // Get the server data for the guild in which this was called. It will be used for saving the last few memes to prevent repeats 
+    var serverData = await loadServerData(guild);
+
+    // Get the 'lastMemes' arrays from serverData. If they don't exist, create them
+    var lastMemes, randKey;
+    if (!serverData.hasOwnProperty("lastMemes")) {
+
+        // The lastMemes section has not been created yet, so add that
+        serverData.lastMemes = blankServerData.lastMemes;
+
+    }else if (!serverData.lastMemes.hasOwnProperty(folder)) {
+        
+        // The individual 'cache' for this particular folder hasn't been created, so add that
+        serverData.lastMemes[folder] = [];
+
+    }
+    lastMemes = serverData.lastMemes[folder];
+
+    // Open the bucket/folder and get an array of all the images
+    try {
+
+        const imageArray = await getObjectKeys(BUCKET_NAME, prefix + folder);
+        
+        // Select a random image from the array
+        let len = imageArray.length;
+            
+        // Only continue if there is at least one image in the folder, otherwise move on
+        if (len > 0) {
+
+            // Keep selecting random images as long as they are in the cache
+            // In cases where the folder size and number of images are equal, compare against a smaller cache 
+            do {
+                randKey = imageArray[Math.floor(len * Math.random())];
+            }while ( elementInArray(randKey, lastMemes.slice(0, len - 1)) );
+        
+            // Add this unique random image to the cache, then save the new cache to the serverData object
+            lastMemes = pushToLimitedQueue(lastMemes, randKey, cacheSize);
+            serverData.lastMemes[folder] = lastMemes;
+
+        }
+    
+    }catch (error) {
+        console.log("getRandomImageKey(): Error caught: ", error);
+        return "";
+    }
+
+    // Now that (hopefully) randKey and serverData.lastMemes have been updated, save and return the path
+    await saveServerData(guild, serverData);
+    return randKey;
+
+}// end getRandomImageKey()
+
+
 
 module.exports = {
     loadServerData,
     saveServerData,
     getRandomImagePath,
+    getRandomImageKey,
     resolveCommandAlias
 };
 

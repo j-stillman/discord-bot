@@ -11,19 +11,8 @@ const { AttachmentBuilder } = require('discord.js');
 
 // AWS imports
 const { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command } = require('@aws-sdk/client-s3');
-const { Readable } = require('stream');
-const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
-
-
-// Helper function to convert a stream to a stirng (this is for JSON files)
-const streamToString = (string) =>
-    new Promise ((resolve, reject) => {
-        const chunks = [];
-        stream.on('data', (chunk) => chunks.push(chunk));
-        stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-        stream.on('error', reject);
-    });
-// end streamToString()
+const { Readable } = require('stream');               
+const s3 = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });                     
 
 
 // Helper function to convert a stream to a buffer (this is for building media attachments) 
@@ -85,7 +74,7 @@ async function fetchJSONS3(bucket, key)
     try {
 
         const data = await s3.send(command);
-        const jsonStr = await streamToString(data);
+        const jsonStr = await data.Body.transformToString();
         return JSON.parse(jsonStr);
 
     }catch (error) {
@@ -163,11 +152,16 @@ async function getObjectKeys(bucket, prefix = null)
 
     // Filter the keys if a prefix was specified, otherwise return the raw results
     if (prefix) {
-        const filteredKeys = keys.filter(key => key.startsWith(prefix));
+
+        // Clean the prefix to have a slash at the end if there wasn't one already
+        if (!prefix.endsWith('/')) { prefix = prefix + '/'; }
+
+        const filteredKeys = keys.filter(key => (key.startsWith(prefix) && key != prefix));     // Here I've filtered out the folder key itself because that's basically a given and not important
         return filteredKeys;
-    }else{
-        return keys;
     }
+    
+    return keys;
+    
 }// end getObjectKeys()
 
 

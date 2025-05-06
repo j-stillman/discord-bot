@@ -4,7 +4,7 @@
 
 // This file is the main entrypoint for the discord bot. It loads event and command files, then logs in.
 
-// We must require 'dotenv' to be able to access the token. The token must stay private in .env
+// We must require 'dotenv' to be able to access the token and AWS S3 info. The token must stay private in .env
 require('dotenv').config();
 
 // Notes: Intents are "permissions" for a bot. They take the form of constants e.g. "GUILD_CREATE", "GUILD_UPDATE".
@@ -55,7 +55,7 @@ async function loadEvents()
 
     const eventFiles = (await fs.readdir('./src/events')).filter(file => file.endsWith('.js'));
 
-    // For each event file, add it to the collection with its name as the key
+    // For each event file, create the listener for that event
     for (const file of eventFiles) {
         const event = require(`./events/${file}`);
         client.on(event.name, (...args) => event.execute(...args, client));
