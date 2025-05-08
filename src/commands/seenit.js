@@ -35,11 +35,15 @@ module.exports = {
         // Get the path of the image to send, updating the server's 'last memes' cache in the process
         var imageKey = await getRandomImageKey('seenit', message.guild);
 
+        // Get the username of the person who sent the command. If they don't have a global name, use their username.
+        var senderName = message.author.globalName;
+        if (!senderName) { senderName = message.author.username; }
+        
         // Finally send the image with a little message alongside it. 
         sendImageToChannel({
             channel: message.channel,
             s3Key: imageKey,
-            message: `Uh-oh! **${message.author.globalName}** has already seen that meme!`,
+            message: `Uh-oh! **${senderName}** has already seen that meme!`,
             attachmentName: 'seenit',
             replyTo: reference
         });

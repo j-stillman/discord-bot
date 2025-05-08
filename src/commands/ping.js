@@ -30,13 +30,14 @@ module.exports = {
             console.timeEnd("discordReply");
         }
 */
-        
-/*
+/*        
         await sendImageToChannel({
             channel: message.channel,
             s3Key: 'images/other/other_6196790140.mp4',
             message: 'Here is your file sir:'
         });
+*/
+        /*
         console.log("message sent!");
 
         var keys = await getObjectKeys(process.env.BUCKET_NAME);

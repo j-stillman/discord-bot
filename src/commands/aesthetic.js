@@ -21,7 +21,7 @@ module.exports = {
         var imageKey = await getRandomImageKey('aesthetic', message.guild);
 
         // Finally send the image with a little message alongside it. 
-        sendImageToChannel({
+        await sendImageToChannel({
             channel: message.channel,
             s3Key: imageKey,
             attachmentName: 'aesthetic'
