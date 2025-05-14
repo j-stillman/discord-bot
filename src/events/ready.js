@@ -77,7 +77,14 @@ module.exports = {
                 let prefixTemplate = 'data/data_';
                 let guildIDTemplate = '123456789123456789';
                 let guildID = file.substring(prefixTemplate.length).substring(0, guildIDTemplate.length);
-                let guild = await client.guilds.fetch(guildID);
+                let guild;
+                try {
+                    guild = await client.guilds.fetch(guildID);
+                }catch(error) {
+                    console.log(`Guild for ID ${guildID} not found. Skipping...`);
+                    continue;
+                }
+                
                 let serverData = await loadServerData(guild);
 
                 let memeToSend = await checkServerTime(serverData);

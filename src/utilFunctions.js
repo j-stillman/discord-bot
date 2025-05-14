@@ -188,5 +188,6 @@ module.exports = {
     elementInArray,
     pushToLimitedQueue,
     sendImageToChannel,
+    createMediaAttachment,
     jsonArgument
 };

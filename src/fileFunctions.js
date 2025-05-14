@@ -218,7 +218,6 @@ async function getRandomImageKey(folder, guild)
 }// end getRandomImageKey()
 
 
-
 module.exports = {
     loadServerData,
     saveServerData,

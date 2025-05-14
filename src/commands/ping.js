@@ -6,6 +6,8 @@
 const { getAttachmentFromS3, getObjectKeys } = require('../s3Functions');
 const { sendImageToChannel } = require('../utilFunctions');
 
+const BUCKET_NAME = process.env.BUCKET_NAME;
+
 module.exports = {
     
     data: {
