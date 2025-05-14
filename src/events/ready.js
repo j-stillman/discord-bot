@@ -68,13 +68,21 @@ module.exports = {
 
             // Every hour at 00 minutes, this will run. Go through each server's data.json file and retrieve their home channel if set
             //const dataFiles = (await fs.readdir('./data/')).filter(file => (file.includes('data_') && file.endsWith('.json')));
-            const dataFolder = await getObjectKeys(process.env.BUCKET_NAME, 'data/');
-            const dataFiles = dataFolder.filter(file => (file.includes('data_') && file.endsWith('.json')));
+            //const dataFolder = await getObjectKeys(process.env.BUCKET_NAME, 'data/');
+            //const dataFiles = dataFolder.filter(file => (file.includes('data_') && file.endsWith('.json')));
 
-            for (const file of dataFiles) {
+            // Get a list of all the guilds the bot is currently in
+            var guildList = [];
+            client.guilds.cache.forEach(guild => {
+                guildList.push(guild);
+            });
+
+            // For each guild, determine if it is time to send that daily meme
+            //for (const file of dataFiles) {
+            for (const guild of guildList) {
 
                 // Obtain the guild via the filename (TODO this is a REALLY lousy solution, maybe change it somehow)
-                let prefixTemplate = 'data/data_';
+                /*let prefixTemplate = 'data/data_';
                 let guildIDTemplate = '123456789123456789';
                 let guildID = file.substring(prefixTemplate.length).substring(0, guildIDTemplate.length);
                 let guild;
@@ -83,7 +91,7 @@ module.exports = {
                 }catch(error) {
                     console.log(`Guild for ID ${guildID} not found. Skipping...`);
                     continue;
-                }
+                }*/
                 
                 let serverData = await loadServerData(guild);
 
@@ -107,7 +115,7 @@ module.exports = {
 };
 
 
-// Function to examine a server from a json filename to see if it's time to send a daily meme whether that's good morning or good night
+// Function to examine a server's json data to see if it's time to send a daily meme whether that's good morning or good night
 async function checkServerTime(serverData)
 {
 
@@ -160,7 +168,7 @@ async function sendDailyMeme(client, serverData, guild, memeType)
             homeChannel = await client.channels.fetch(serverData.homeChannel);
         }
     }catch (error) {
-        console.log("Error caught fetching channel.");
+        console.log("Error caught fetching channel:", error);
         return;
     }
 
