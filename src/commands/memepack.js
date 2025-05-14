@@ -23,8 +23,9 @@ module.exports = {
         message.channel.sendTyping();
 
         // Tell the user that the meme pack will be sent
-        await message.reply({
-            content: `I will DM you ${NUM_MEMES} memes momentarily. Please wait...`
+        let msgText = `I will DM you ${NUM_MEMES} memes momentarily. Please wait...\n`;
+        const msg = await message.reply({
+            content: msgText
         });
 
         // Gather the keys and retrieve 10 meme keys
@@ -40,12 +41,20 @@ module.exports = {
 
         }
 
-        // DM that array of attachments to the original sender 
-        const sender = message.author;
-        await sender.send({
-            content: "Here are your memes:",
-            files: attachments
-        });
+        // DM that array of attachments to the original sender
+        try {
+            const sender = message.author;
+            await sender.send({
+                content: "Here are your memes:",
+                files: attachments
+            });
+
+            await msg.edit(msgText + `Memes sent successfully!`);
+        }catch (error) {
+            console.log(`Error sending DM:`, error);
+            await msg.edit(msgText + `There seems to have been an error.`);
+        }
+        
 
     }// end execute()
 
