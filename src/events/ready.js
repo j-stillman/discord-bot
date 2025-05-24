@@ -97,7 +97,7 @@ module.exports = {
 
                 let memeToSend = await checkServerTime(serverData);
 
-                console.log("  memeToSend =", memeToSend);
+                console.log(`  guild ${guild.id}: memeToSend =`, memeToSend);
 
                 // Send the meme to the server based on what checkServerTime returned (if valid)
                 if (memeToSend != dailyMemeTypes.NONE) {
@@ -142,7 +142,7 @@ async function checkServerTime(serverData)
 
     // Check if the hour is either morning or night and return accordingly if gm/gn messages are enabled
     if (currentTimeLocal.hour() == dailyMemeTimes.MORNING) {
-        if (gmEnabled) { 
+        if (gmEnabled) {
             return dailyMemeTypes.GM; 
         }
     }else if (currentTimeLocal.hour() == dailyMemeTimes.NIGHT) {
@@ -185,6 +185,8 @@ async function sendDailyMeme(client, serverData, guild, memeType)
         let timezone = getServerTimezone(serverData);
         let currentTimeLocal = moment.utc().clone().tz(timezone);
         let weekday = currentTimeLocal.format('dddd').toLowerCase();
+
+        // Create the message to be sent
         let gmMessage = `Good morning ${groupMoniker}, happy **${capitalizeFirstLetter(weekday)}** ☀️`;
 
         // Get the path of the image to send, updating the server's 'last memes' cache in the process

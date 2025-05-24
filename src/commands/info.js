@@ -69,6 +69,9 @@ module.exports = {
             // Send the message
             await message.channel.send(responseString);
 
+        }else if (args[0] == "memetourney") {
+            message.channel.sendTyping();
+            await message.channel.send('`!memetourney` - Starts a meme tournament');
         }else{
             await message.channel.send('I am a multi-purpose bot, most notably to enhance the character of your server :]\nPlease note I am still in Zeta, so no functionality is guaranteed.');
         }
