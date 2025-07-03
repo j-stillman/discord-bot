@@ -126,6 +126,10 @@ const commands = [
             }
         ]
     },
+    {
+        name: "togglegoodmorningtype",
+        description: "(Admin use only) Toggle the daily memes to be random or curated to the weekday",
+    },
 ];
 
 // Initialize REST to the bot token in env

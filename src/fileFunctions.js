@@ -12,6 +12,7 @@ const blankServerData = {
     wordCounts: {},
     goodMorningsEnabled: false,
     goodNightsEnabled: false,
+    goodMorningType: 1,
     lastMemes: {
         sunday: [],
         monday: [],
@@ -197,7 +198,9 @@ async function getRandomImageKey(folder, guild)
             // Keep selecting random images as long as they are in the cache
             // In cases where the folder size and number of images are equal, compare against a smaller cache 
             do {
+                
                 randKey = imageArray[Math.floor(len * Math.random())];
+
             }while ( elementInArray(randKey, lastMemes.slice(0, len - 1)) );
         
             // Add this unique random image to the cache, then save the new cache to the serverData object

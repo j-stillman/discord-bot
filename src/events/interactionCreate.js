@@ -28,6 +28,12 @@ module.exports = {
 };
 
 
+// Enum of the type of daily memes to be sent: random or curated to weekday
+const gmCuration = {
+    WEEKDAY: 1,
+    RANDOM: 2
+};
+
 // Helper function to process a slash command
 async function processSlashCommand(interaction, client)
 {
@@ -161,6 +167,38 @@ async function processSlashCommand(interaction, client)
                 // Caller is not an admin, so tell them the command cannot be used
                 await interaction.reply(`You do not have permission to use this command.`);
             
+            }
+
+            break;
+        case "togglegoodmorningtype":
+            
+            // Restrict the use of this command to admins only.
+            if (callerIsAdmin) {
+                // Caller is admin, so go forward with toggling which kind of good mornings to use
+                
+                await interaction.deferReply();
+
+                let serverData = await loadServerData(interaction.guild);
+                if (serverData.hasOwnProperty("goodMorningType")) {
+
+                    // Flip-flop the good morning curation between weekday and random
+                    if (serverData.goodMorningType == gmCuration.WEEKDAY) {
+                        serverData.goodMorningType = gmCuration.RANDOM;
+                        await interaction.editReply(`❓ Good morning meme curation set to: RANDOM.`);
+                    }else if (serverData.goodMorningType == gmCuration.RANDOM) {
+                        serverData.goodMorningType = gmCuration.WEEKDAY;
+                        await interaction.editReply(`📅 Good morning meme curation set to: WEEKDAY.`);
+                    }
+
+                }else{
+                    serverData.goodMorningType = gmCuration.WEEKDAY;
+                }
+
+                await saveServerData(interaction.guild, serverData);
+
+            }else{
+                // Caller is not admin, so tell them the command cannot be used
+                await interaction.reply(`You do not have permission to use this command.`);
             }
 
             break;

@@ -7,7 +7,7 @@
 const fs = require('fs').promises;
 
 const { ActivityType } = require('discord.js');
-const { resolveCommandAlias, loadServerData, getRandomImagePath, getRandomImageKey } = require('../fileFunctions');
+const { resolveCommandAlias, loadServerData, getRandomImagePath, getRandomImageKey, saveServerData } = require('../fileFunctions');
 const { sendImageToChannel, chooseRandom, capitalizeFirstLetter } = require('../utilFunctions');
 const { saveJSONS3, getObjectKeys } = require('../s3Functions');
 
@@ -28,6 +28,12 @@ const dailyMemeTypes = {
 const dailyMemeTimes = {
     MORNING: 9,
     NIGHT: 22
+};
+
+// Enum of the type of daily memes to be sent: random or curated to weekday
+const gmCuration = {
+    WEEKDAY: 1,
+    RANDOM: 2
 };
 
 // Array of the group monikers which the bot may use to address the server
@@ -181,17 +187,43 @@ async function sendDailyMeme(client, serverData, guild, memeType)
     // Check which type of daily meme to send, whether it's good morning or good night
     if (memeType == dailyMemeTypes.GM) {
 
-        // Need to determine what day it is first
+        // Variables for the timezone and what weekday it is, along with the text/key for the message
         let timezone = getServerTimezone(serverData);
         let currentTimeLocal = moment.utc().clone().tz(timezone);
         let weekday = currentTimeLocal.format('dddd').toLowerCase();
+        let gmMessage, imageKey;
+
+        // TODO check if it is a holiday. If so, send a special meme and change gmMessage to reflect that
+        // Open up the local json file which has a list of the holidays. If it the month and date match, use that
+
 
         // Create the message to be sent
-        let gmMessage = `Good morning ${groupMoniker}, happy **${capitalizeFirstLetter(weekday)}** ☀️`;
+        gmMessage = `Good morning ${groupMoniker}, happy **${capitalizeFirstLetter(weekday)}** ☀️`;
+
+        // Determine if the server has set the good morning meme type to random or weekday-curated
+        let gmType;
+        if (serverData.hasOwnProperty("goodMorningType")) {
+            gmType = serverData.goodMorningType;
+        }else{
+            serverData.goodMorningType = gmCuration.WEEKDAY;
+            gmType = gmCuration.WEEKDAY;
+            await saveServerData(guild, serverData);
+        }
 
         // Get the path of the image to send, updating the server's 'last memes' cache in the process
-        // TODO check if it is a holiday. If so, send a special meme and change gmMessage to reflect that
-        let imageKey = await getRandomImageKey(weekday, guild);
+        let whichFolder = weekday;
+        if (gmType == gmCuration.RANDOM) {
+            whichFolder = "random";
+        }
+        imageKey = await getRandomImageKey(whichFolder, guild);
+
+        // Tack on fix for holiday July 4th, TODO fix later
+        let monthNumber = currentTimeLocal.month() + 1;
+        let dayNumber = currentTimeLocal.date();
+        if (monthNumber == 7 && dayNumber == 4) {
+            gmMessage = `Happy 4th of July, ${groupMoniker} 🇺🇸🎆🧨🌭🍺`;
+            imageKey = 'images/other/illegalfireworks.png';
+        }
 
         // Finally send the image with a little message alongside it. 
         sendImageToChannel({
