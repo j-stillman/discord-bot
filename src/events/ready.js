@@ -21,13 +21,15 @@ const moment = require('moment-timezone');
 const dailyMemeTypes = {
     NONE: 0,
     GM: 1,
-    GN: 2
+    GN: 2,
+    FOURPM: 3
 };
 
 // Enum of the times that daily memes will be sent 
 const dailyMemeTimes = {
     MORNING: 9,
-    NIGHT: 22
+    NIGHT: 22,
+    FOURPM: 16
 };
 
 // Enum of the type of daily memes to be sent: random or curated to weekday
@@ -86,18 +88,6 @@ module.exports = {
             // For each guild, determine if it is time to send that daily meme
             //for (const file of dataFiles) {
             for (const guild of guildList) {
-
-                // Obtain the guild via the filename (TODO this is a REALLY lousy solution, maybe change it somehow)
-                /*let prefixTemplate = 'data/data_';
-                let guildIDTemplate = '123456789123456789';
-                let guildID = file.substring(prefixTemplate.length).substring(0, guildIDTemplate.length);
-                let guild;
-                try {
-                    guild = await client.guilds.fetch(guildID);
-                }catch(error) {
-                    console.log(`Guild for ID ${guildID} not found. Skipping...`);
-                    continue;
-                }*/
                 
                 let serverData = await loadServerData(guild);
 
@@ -135,6 +125,7 @@ async function checkServerTime(serverData)
     // Determine if gm/gn messages are enabled
     let gmEnabled = false;
     let gnEnabled = false;
+    let fourPMEnabled = false;
     if (serverData.hasOwnProperty("goodMorningsEnabled")) {
         if (serverData.goodMorningsEnabled) {
             gmEnabled = true;
@@ -143,6 +134,11 @@ async function checkServerTime(serverData)
     if (serverData.hasOwnProperty("goodNightsEnabled")) {
         if (serverData.goodNightsEnabled) {
             gnEnabled = true;
+        }
+    }
+    if (serverData.hasOwnProperty("fourPMEnabled")) {
+        if (serverData.fourPMEnabled) {
+            fourPMEnabled = true;
         }
     }
 
@@ -155,6 +151,18 @@ async function checkServerTime(serverData)
         if (gnEnabled) {
             return dailyMemeTypes.GN;
         }
+    }else if (currentTimeLocal.hour() == dailyMemeTimes.FOURPM) {
+
+        // For the silly "it's 4pm" meme, make it a 1/10 chance
+        if (fourPMEnabled) {
+
+            let chance = Math.floor(Math.random() * 10);
+            if (chance == 0) {
+                return dailyMemeTypes.FOURPM;
+            }
+
+        }
+
     }
 
     // Otherwise, return none and move on
@@ -242,6 +250,18 @@ async function sendDailyMeme(client, serverData, guild, memeType)
             channel: homeChannel,
             s3Key: imageKey,
             message: `Good night, ${groupMoniker} 🌙`
+        });
+
+    }else if (memeType == dailyMemeTypes.FOURPM) {
+
+        // If it's the silly "it's 4pm" joke
+        let imageKey = FOURPM_KEY;
+
+        // Send the image
+        sendImageToChannel({
+            channel: homeChannel,
+            s3Key: imageKey,
+            attachmenName: 'four-PM-as-in-TODAY-four-PM'
         });
 
     }

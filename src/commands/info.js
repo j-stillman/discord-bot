@@ -73,7 +73,7 @@ module.exports = {
             message.channel.sendTyping();
             await message.channel.send('`!memetourney` - Starts a meme tournament');
         }else{
-            await message.channel.send('I am a multi-purpose bot, most notably to enhance the character of your server :]\nPlease note I am still in Zeta, so no functionality is guaranteed.');
+            await message.channel.send('I am a multi-purpose bot, most notably to enhance the character of your server :]\nPlease note I am still in Zeta, so no functionality is guaranteed.\nLast update: 2026-05-17 (dumb hidden feature added)');
         }
         
     }// end execute()
