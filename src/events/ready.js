@@ -125,7 +125,7 @@ async function checkServerTime(serverData)
     // Determine if gm/gn messages are enabled
     let gmEnabled = false;
     let gnEnabled = false;
-    let fourPMEnabled = false;
+    let fourPMEnabled = true;
     if (serverData.hasOwnProperty("goodMorningsEnabled")) {
         if (serverData.goodMorningsEnabled) {
             gmEnabled = true;
@@ -139,6 +139,8 @@ async function checkServerTime(serverData)
     if (serverData.hasOwnProperty("fourPMEnabled")) {
         if (serverData.fourPMEnabled) {
             fourPMEnabled = true;
+        }else{
+            fourPMEnabled = false;
         }
     }
 

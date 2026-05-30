@@ -160,11 +160,11 @@ async function getRandomImagePath(folder, guild)
 // Function to retrieve a random S3 image key given a subfolder. Looks in 'images/' only
 // folder - the name of the subfolder of images/ in the bucket.
 // guild - a guild object so we know which image cache to compare against 
-async function getRandomImageKey(folder, guild)
+async function getRandomImageKey(folder, guild, cacheSize = 3)
 {
 
     const prefix = 'images/';
-    const cacheSize = 3;
+    //const cacheSize = 3;
     
     // Get the server data for the guild in which this was called. It will be used for saving the last few memes to prevent repeats 
     var serverData = await loadServerData(guild);

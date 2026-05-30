@@ -18,7 +18,7 @@ module.exports = {
         message.channel.sendTyping();
 
         // Get the path of the image to send, updating the server's 'last memes' cache in the process
-        var imageKey = await getRandomImageKey('random', message.guild);
+        var imageKey = await getRandomImageKey('random', message.guild, 100); // last argument expands the cache for this particular command
 
         // Finally send the image with a little message alongside it. 
         sendImageToChannel({
