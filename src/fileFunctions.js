@@ -102,11 +102,11 @@ async function resolveCommandAlias(commandAlias)
 // Function to retrieve a random image path from a given directory, using a GUILD object
 // This function is for retrieving from the local machine, NOT S3. As such, you probably won't
 // see this called very much going forward. getRandomImageKey() is its S3 equivalent.
-async function getRandomImagePath(folder, guild)
+async function getRandomImagePath(folder, guild, cacheSize = 3)
 {
 
     const imagesDir = './images/';
-    const cacheSize = 3;
+    //const cacheSize = 3;
     
     // Get the server data for the guild in which this was called. It will be used for saving the last few memes to prevent repeats 
     var serverData = await loadServerData(guild);
