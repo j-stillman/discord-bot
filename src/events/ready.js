@@ -17,6 +17,8 @@ const cron = require('node-cron');
 // Use moment-timezone to get a list of valid timezones that node-cron uses
 const moment = require('moment-timezone');
 
+const FOURPM_KEY = 'images/other/cat heh its 4pm.png';
+
 // Enum of the types of daily memes, used for checking what kind of meme to send this hour, if any
 const dailyMemeTypes = {
     NONE: 0,
@@ -159,6 +161,7 @@ async function checkServerTime(serverData)
         if (fourPMEnabled) {
 
             let chance = Math.floor(Math.random() * 10);
+            console.log(`           FOURPM: ${chance}`);
             if (chance == 0) {
                 return dailyMemeTypes.FOURPM;
             }
